@@ -1,4 +1,4 @@
-.PHONY: help setup run validate clean tree
+.PHONY: help setup run validate clean tree stack-up stack-down stack-logs stack-check
 
 ifeq ($(OS),Windows_NT)
 PYTHON := python
@@ -17,6 +17,10 @@ help:
 	@echo "  make validate  Run the demo validation"
 	@echo "  make clean     Remove generated output and Python caches"
 	@echo "  make tree      Show files up to depth 3"
+	@echo "  make stack-up    Start PostgreSQL and MinIO with Docker Compose"
+	@echo "  make stack-down  Stop the Docker Compose stack"
+	@echo "  make stack-logs  Show recent Docker Compose logs"
+	@echo "  make stack-check Check Docker stack health"
 
 setup:
 	$(PYTHON) -m venv .venv
@@ -33,3 +37,15 @@ clean:
 
 tree:
 	$(PYTHON) -c "from pathlib import Path; root=Path('.'); ignored={'.git','.venv'}; paths=sorted(p for p in root.rglob('*') if not any(part in ignored for part in p.parts) and len(p.relative_to(root).parts)<=3); [print(str(p).replace(chr(92),'/') + ('/' if p.is_dir() else '')) for p in paths]"
+
+stack-up:
+	docker compose up -d
+
+stack-down:
+	docker compose down
+
+stack-logs:
+	docker compose logs --tail=100
+
+stack-check:
+	scripts/check_stack.sh
