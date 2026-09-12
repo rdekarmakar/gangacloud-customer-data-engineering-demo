@@ -1,0 +1,30 @@
+services:
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: gangacloud-airflow:local
+    container_name: gc-de-airflow
+    restart: unless-stopped
+    command: standalone
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      MINIO_ENDPOINT: http://minio:9000
+      PIPELINE_OUTPUT_PATH: /tmp/gangacloud/platform_etl/category_summary
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - .:/opt/airflow/project:ro
+      - airflow_data:/opt/airflow
+      - airflow_logs:/opt/airflow/logs
+
+volumes:
+  airflow_data:
+  airflow_logs:
