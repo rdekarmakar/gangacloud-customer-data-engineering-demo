@@ -1,4 +1,4 @@
-.PHONY: help setup run validate clean tree stack-up stack-down stack-logs stack-check storage-init pipeline-run pipeline-validate demo
+.PHONY: help setup run validate clean tree stack-up stack-down stack-logs stack-check storage-init pipeline-run pipeline-validate demo prerequisites bootstrap workspace-setup
 
 ifeq ($(OS),Windows_NT)
 PYTHON := python
@@ -25,6 +25,9 @@ help:
 	@echo "  make pipeline-run Run the end-to-end platform ETL pipeline"
 	@echo "  make pipeline-validate Independently validate MinIO and PostgreSQL"
 	@echo "  make demo       Start the stack and run the complete M28.4 demo"
+	@echo "  make prerequisites Check workspace requirements without changing the host"
+	@echo "  make bootstrap Install Ubuntu workspace runtime packages"
+	@echo "  make workspace-setup Prepare and validate the complete customer demo"
 
 setup:
 	$(PYTHON) -m venv .venv
@@ -69,3 +72,12 @@ demo:
 	$(MAKE) storage-init
 	$(MAKE) pipeline-run
 	$(MAKE) pipeline-validate
+
+prerequisites:
+	scripts/check_prerequisites.sh
+
+bootstrap:
+	scripts/bootstrap_workspace.sh
+
+workspace-setup:
+	scripts/setup_demo.sh

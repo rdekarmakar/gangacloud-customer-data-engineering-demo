@@ -33,15 +33,19 @@ data/input/orders.csv
 |-- docs/
 |   |-- docker-stack.md
 |   |-- end-to-end-etl.md
-|   `-- ssh-access.md
+|   |-- ssh-access.md
+|   `-- workspace-setup.md
 |-- jobs/
 |   |-- orders_etl.py
 |   `-- orders_platform_etl.py
 |-- notebooks/
 |   `-- orders_etl_notebook.md
 |-- scripts/
+|   |-- bootstrap_workspace.sh
+|   |-- check_prerequisites.sh
 |   |-- check_stack.sh
 |   |-- init_storage.py
+|   |-- setup_demo.sh
 |   `-- validate_pipeline.py
 |-- .env.example
 |-- .gitattributes
@@ -57,7 +61,7 @@ data/input/orders.csv
 - Python 3.10, 3.11, or 3.12 recommended for the pinned dependencies
 - `make`
 - Java available on `PATH`, required by PySpark
-- Docker Engine with Docker Compose, required for the M28.3 and M28.4 stack
+- Docker Engine with Docker Compose, required for the M28.3 through M28.5 workflows
 
 ## Quick Start
 
@@ -142,6 +146,25 @@ make demo
 
 `make demo` starts and checks the stack, initializes storage, runs the pipeline, and validates it. It does not remove volumes or stop the services. See `docs/end-to-end-etl.md` for architecture, inspection commands, and the private MinIO console tunnel.
 
+## M28.5 Repeatable Workspace Setup
+
+M28.5 prepares a fresh Ubuntu 24.04 VM with the local runtime components needed by this customer demo. The prerequisite audit is read-only, while the bootstrap uses Ubuntu packages and requires `sudo`.
+
+```bash
+git clone https://github.com/rdekarmakar/gangacloud-customer-data-engineering-demo.git
+cd gangacloud-customer-data-engineering-demo
+
+make prerequisites
+sudo ./scripts/bootstrap_workspace.sh
+
+# Reconnect if Docker group membership changed.
+
+make workspace-setup
+make demo
+```
+
+`make workspace-setup` preserves an existing `.env` and Docker volumes. Services remain private on `127.0.0.1`; the setup does not configure public Jupyter or a production-managed Spark platform. See `docs/workspace-setup.md` for fresh-VM and existing-VM procedures and troubleshooting.
+
 ## Current Limitations
 
 - Local PySpark mode only.
@@ -162,3 +185,7 @@ M28.3 adds a local-only Docker data stack with PostgreSQL and MinIO for future c
 ## M28.4 Milestone
 
 M28.4 turns the earlier pieces into one end-to-end demo: PySpark creates the category summary, `boto3` stores its Parquet artifact in MinIO, psycopg loads the exact aggregate into PostgreSQL, and an independent validator checks both destinations.
+
+## M28.5 Milestone
+
+M28.5 adds a read-only host audit, an Ubuntu 24.04 package bootstrap, and an idempotent repository setup workflow for repeatable private demo workspaces.
