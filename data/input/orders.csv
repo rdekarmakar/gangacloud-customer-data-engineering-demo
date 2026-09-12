@@ -8,4 +8,4 @@ order_id,customer_id,category,amount,status
 7,C007,ai,900,failed
 8,C008,data,1500,success
 9,C009,cloud,700,failed
-10,C010,data,1000,success
+10,C010,data,1000,failed
