@@ -87,7 +87,12 @@ def main() -> None:
     load_dotenv(repo_root / ".env")
     config = require_environment()
     input_path = repo_root / "data" / "input" / "orders.csv"
-    output_path = repo_root / "data" / "output" / "platform_etl" / "category_summary"
+    output_path = Path(
+        os.getenv(
+            "PIPELINE_OUTPUT_PATH",
+            str(repo_root / "data" / "output" / "platform_etl" / "category_summary"),
+        )
+    )
 
     spark = (
         SparkSession.builder.master("local[*]")
@@ -149,8 +154,8 @@ def main() -> None:
 
     try:
         with psycopg.connect(
-            host="127.0.0.1",
-            port=5432,
+            host=os.getenv("POSTGRES_HOST", "127.0.0.1"),
+            port=int(os.getenv("POSTGRES_PORT", "5432")),
             dbname=config["POSTGRES_DB"],
             user=config["POSTGRES_USER"],
             password=config["POSTGRES_PASSWORD"],

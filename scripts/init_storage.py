@@ -74,8 +74,8 @@ def main() -> None:
 
     try:
         with psycopg.connect(
-            host="127.0.0.1",
-            port=5432,
+            host=os.getenv("POSTGRES_HOST", "127.0.0.1"),
+            port=int(os.getenv("POSTGRES_PORT", "5432")),
             dbname=required("POSTGRES_DB"),
             user=required("POSTGRES_USER"),
             password=required("POSTGRES_PASSWORD"),
