@@ -18,7 +18,7 @@ services:
       start_period: 10s
 
   minio:
-    image: minio/minio
+    image: quay.io/minio/minio
     container_name: gc-de-minio
     command: server /data --console-address ":9001"
     environment:
