@@ -1,6 +1,6 @@
 # GangaCloud Customer Data Engineering Demo
 
-This repository is a standalone, customer-facing demo for a private GangaCloud Data Engineering Workspace. It shows a small end-to-end PySpark ETL flow and a lightweight local Docker data stack without any control-plane integration.
+This repository is a standalone, customer-facing demo for a private GangaCloud Data Engineering Workspace. It shows a PySpark ETL flow backed by a lightweight, local-only PostgreSQL and MinIO data stack without any control-plane integration.
 
 ## ETL Flow
 
@@ -32,13 +32,17 @@ data/input/orders.csv
 |   `-- output/
 |-- docs/
 |   |-- docker-stack.md
+|   |-- end-to-end-etl.md
 |   `-- ssh-access.md
 |-- jobs/
-|   `-- orders_etl.py
+|   |-- orders_etl.py
+|   `-- orders_platform_etl.py
 |-- notebooks/
 |   `-- orders_etl_notebook.md
 |-- scripts/
-|   `-- check_stack.sh
+|   |-- check_stack.sh
+|   |-- init_storage.py
+|   `-- validate_pipeline.py
 |-- .env.example
 |-- .gitattributes
 |-- .gitignore
@@ -53,7 +57,7 @@ data/input/orders.csv
 - Python 3.10, 3.11, or 3.12 recommended for the pinned dependencies
 - `make`
 - Java available on `PATH`, required by PySpark
-- Docker Engine with Docker Compose, required for the M28.3 stack
+- Docker Engine with Docker Compose, required for the M28.3 and M28.4 stack
 
 ## Quick Start
 
@@ -110,13 +114,42 @@ make stack-down
 
 See `docs/docker-stack.md` for setup, SSH tunnel examples, and reset instructions.
 
+## M28.4 End-to-End Quick Start
+
+M28.4 extends the local PySpark transformation through Parquet, MinIO, and PostgreSQL, then independently validates both external destinations.
+
+```text
+orders.csv -> PySpark -> Parquet -> MinIO -> PostgreSQL -> validation
+```
+
+Create `.env` and replace the example passwords before starting:
+
+```bash
+cp .env.example .env
+make setup
+make stack-up
+make stack-check
+make storage-init
+make pipeline-run
+make pipeline-validate
+```
+
+After `make setup`, the safe combined workflow is:
+
+```bash
+make demo
+```
+
+`make demo` starts and checks the stack, initializes storage, runs the pipeline, and validates it. It does not remove volumes or stop the services. See `docs/end-to-end-etl.md` for architecture, inspection commands, and the private MinIO console tunnel.
+
 ## Current Limitations
 
 - Local PySpark mode only.
 - Static sample CSV input.
 - Parquet output is generated locally under `data/output/` and is not committed.
-- M28.3 starts PostgreSQL and MinIO but does not yet load demo data into either service.
-- No Airflow, Kubernetes, FastAPI, public Jupyter, multi-node Spark, provisioning automation, billing changes, product-plan changes, or GangaCloud control-plane integration in this milestone.
+- The M28.4 load is a deterministic demo replacement, not an incremental data pipeline.
+- Spark does not use S3A for MinIO or JDBC for PostgreSQL.
+- No Airflow, Kubernetes, FastAPI, public Jupyter, multi-node Spark, provisioning automation, billing changes, product-plan changes, or GangaCloud control-plane integration is included.
 
 ## M28.2 Milestone
 
@@ -125,3 +158,7 @@ M28.2 focuses on a clean customer demo of the private GangaCloud Data Engineerin
 ## M28.3 Milestone
 
 M28.3 adds a local-only Docker data stack with PostgreSQL and MinIO for future customer workspace demos while keeping all service ports bound to localhost.
+
+## M28.4 Milestone
+
+M28.4 turns the earlier pieces into one end-to-end demo: PySpark creates the category summary, `boto3` stores its Parquet artifact in MinIO, psycopg loads the exact aggregate into PostgreSQL, and an independent validator checks both destinations.
